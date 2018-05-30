@@ -14,11 +14,14 @@
     using std::vector;
 #include <curl/curl.h>
 
+    
 void makeCaptcha(string &outString, string word);
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
+bool checkWord(string targetWord, string sensWords[]);
 
 int main()
 {
+    string sensitiveWords[5] = {"bomb", "suicide", "nuclear", "prayer", "religion"};
     char website[100];
     cout << "Enter the website to fetch HTML code from: \n";
     cin.get(website, sizeof(website)); //get website read from user
@@ -65,11 +68,8 @@ int main()
         while (!inFile.eof()) //check to see if end of file was reached
         {
             //cout << word << endl;
-            
-            //check to see if the word is in the sensitive list
-            //better way of doing so when list gets large?
-            if (word == "bsxyj" || word == "bomb" || word == "suicide"
-                || word == "nuclear" || word == "prayer" || word == "religion")
+        
+            if (checkWord(word, sensitiveWords))
             {
                 makeCaptcha(outString, word);
             }
@@ -121,4 +121,19 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 {
     ((string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
+}
+
+bool checkWord(string targetWord, string sensWords[])
+{
+    bool found = false;
+    for (int i = 0; i < 5; i++)
+    {
+        cout << "checking word. i = " << i << ".  Word at i is " << sensWords[i] << endl;
+        if (sensWords[i] == targetWord)
+        {
+            found = true;
+        }
+    }
+    
+    return found;
 }
