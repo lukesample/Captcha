@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var fileText;
+            var sensitiveWords = ["flowers", "gift", "happy", "smile", "party"];
+
+            var openFile = function(event)
+            {
+                var input = event.target; //target that triggered the event(the file)
+            
+                var reader = new FileReader();
+                reader.onload = function()
+                {
+                    fileText = reader.result; //get the data from the file
+                    var node = document.getElementById('output'); //change the div output to the file's output
+                    node.innerText = fileText;
+                    console.log(reader.result.substring(0, 200)); //print output to log
+                };
+            
+                reader.readAsText(input.files[0]);
+            };
+            
+            function createCaptcha()
+            {
+                var i; //outer loop
+                var j; //inner loop
+                var wordToReplace; //the target word
+                var replaceString; //where we will store the captcha html code
+                
+                //loop to check to see if each word in the sensitive word list is in the string(from file)
+                for(i = 0; i < sensitiveWords.length; i++)
+                {
+                    if (fileText.includes(sensitiveWords[i]) != -1) //returns -1 if not in string
+                    {
+                        replaceString = ""; //clear the contents of the string to prevent overwriting
+                        wordToReplace = sensitiveWords[i]; //target word
+                        console.log("word to replace: " + wordToReplace);
+                        
+                        //iterate over each character, creating captcha html code for each
+                        for (j = 0; j < wordToReplace.length; j++) 
+                        {
+                            replaceString = replaceString.concat("<img src = \"/captcha/", wordToReplace[j], ".png\">");
+                        }
+            
+                        replaceString = replaceString.concat("<br>")
+                        
+                        //find and replace the target word with the captcha letter html code
+                        fileText = fileText.replace(sensitiveWords[i], replaceString);
+
+                        //console.log("fileText replaced with captchas: \n" + fileText);
+                    }
+                    
+                }
+                    //console.log("out of loops, text should change");
+                    
+                    //change the div html code to the captcha code we just created
+                    document.getElementById("output").innerHTML = fileText;       
+            };
+            
+            function download(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+    
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+
+        </script>
+    </head>
+        <body>
+
+            <h1>Step 1: Choose a File to upload</h1>
+            <input type='file' onchange='openFile(event)'><br> <!--file input -->
+            
+            <h1>Step 2: Create CAPTCHA Translated File by clicking the button<br></h1>
+            <button onclick="createCaptcha()"> CAPTCHA-size </button> <!-- calls the createCaptcha() function -->
+            
+            <h1>Step 3: Download CAPTCHA Translated File<br></h1>
+            (Hint: File names must have correct file extensions ie .txt, .html, .cpp, etc)
+            
+            
+            <form onsubmit="download(this['name'].value, fileText)"> <!-- calls the download function-->
+            <input type="text" name="name" value="test.txt">
+            <input type="submit" value="Download"> </form>
+            
+                <div id='output'> <!-- to be changed to what is read from file-->
+                    ...
+        
+                </div>
+        </body>
+    </html>
