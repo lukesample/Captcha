@@ -72,15 +72,16 @@
             {
                 var input = document.getElementById("word"); //get the input field
                 
-                if (sensitiveWords.length >= 1) //if there is something in the array already
+                sensitiveWords.push(input.value);
+                if (sensitiveWords.length === 1) //if there is something in the array already
                 {
-                    sensitiveWords.push(input.value);
-                    document.getElementById("wordList").innerHTML += ", " + input.value;
+                    
+                    document.getElementById("wordList").innerHTML +=  input.value;
                 }
                 else //empty array, will be first element
                 {
-                    sensitiveWords.push(input.value);
-                    document.getElementById("wordList").innerHTML += input.value;
+                    
+                    document.getElementById("wordList").innerHTML += ", " + input.value;
                 }
                 
                 input.value = ""; //clear the input box
