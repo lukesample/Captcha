@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8"/>
         <script>
-            var fileText;
-            var sensitiveWords = ["flowers", "gift", "happy", "smile", "party"];
+            var fileText = "";
+            var sensitiveWords =[] ;//["flowers", "gift", "happy", "smile", "party"];
 
             var openFile = function(event)
             {
@@ -12,12 +13,11 @@
                 var reader = new FileReader();
                 reader.onload = function()
                 {
-                    fileText = reader.result; //get the data from the file
+                    fileText = fileText.concat(reader.result); //get the data from the file
                     var node = document.getElementById('output'); //change the div output to the file's output
-                    node.innerText = fileText;
+                    node.innerHTML = "<pre>" + fileText + "</pre>";
                     console.log(reader.result.substring(0, 200)); //print output to log
                 };
-            
                 reader.readAsText(input.files[0]);
             };
             
@@ -35,30 +35,24 @@
                     {
                         replaceString = ""; //clear the contents of the string to prevent overwriting
                         wordToReplace = sensitiveWords[i]; //target word
-                        console.log("word to replace: " + wordToReplace);
-                        
+
                         //iterate over each character, creating captcha html code for each
                         for (j = 0; j < wordToReplace.length; j++) 
                         {
-                            //the filepath for the captcha letters only works for my website for now
-                            //to run locally, place this file in directory with the captcha letters
-                            //and simply remove /captcha/ from the first part of the string
-                            replaceString = replaceString.concat("<img src = \"/captcha/", wordToReplace[j], ".png\">");
-                        }
-            
-                        replaceString = replaceString.concat("<br>")
+                            if (j % 2 === 1)
+                            {
+                                replaceString = replaceString.concat("<img src = \"", wordToReplace[j], ".png\">");
+                            }
+                            else
+                            {
+                                replaceString = replaceString.concat(wordToReplace[j]);
+                            } //end inner if/else
+                        }//end inner for
                         
-                        //find and replace the target word with the captcha letter html code
                         fileText = fileText.replace(sensitiveWords[i], replaceString);
-
-                        //console.log("fileText replaced with captchas: \n" + fileText);
-                    }
-                    
-                }
-                    //console.log("out of loops, text should change");
-                    
-                    //change the div html code to the captcha code we just created
-                    document.getElementById("output").innerHTML = fileText;       
+                    }//end outer if
+                } //end outer for
+                    document.getElementById("output").innerHTML =  "<pre>" + fileText + "</pre>";       
             };
             
             function download(filename, text) {
@@ -73,29 +67,72 @@
 
                 document.body.removeChild(element);
             }
-
+            
+            function addWord()
+            {
+                var input = document.getElementById("word"); //get the input field
+                
+                if (sensitiveWords.length >= 1) //if there is something in the array already
+                {
+                    sensitiveWords.push(input.value);
+                    document.getElementById("wordList").innerHTML += ", " + input.value;
+                }
+                else //empty array, will be first element
+                {
+                    sensitiveWords.push(input.value);
+                    document.getElementById("wordList").innerHTML += input.value;
+                }
+                
+                input.value = ""; //clear the input box
+            }
+            
+            function clearList()
+            {
+                sensitiveWords.length = 0;
+                document.getElementById("wordList").innerHTML = "</br> Sensitive Word List: ";
+            }
 
         </script>
     </head>
         <body>
 
-            <h1>Step 1: Choose a File to upload</h1>
+            <h1> Step 1: Choose Sensitive Words</h1>
+            Type the word you wish to add and click the "Add Word" button </br>
+            To clear your current list, simply click the "Clear Current List" button
+            
+            <div id='wordFields'>
+                <input type='text' name="word" id="word">
+                <input type='submit' onclick='addWord()' value='Add Word' id='wordButton'> <!-- calls the addWordField() function -->
+                </br>
+            </div>
+            
+            <div id="wordList">
+                </br>
+                Sensitive Word List:  
+            </div>
+            
+            <div id="clearListButton">
+                </br>
+                <input type="button" onclick="clearList()" value="Clear Current List">
+            </div>
+            
+            
+            <h1>Step 2: Choose a File to upload</h1>
             <input type='file' onchange='openFile(event)'><br> <!--file input -->
             
-            <h1>Step 2: Create CAPTCHA Translated File by clicking the button<br></h1>
+            <h1>Step 3: Create CAPTCHA Translated File by clicking the button<br></h1>
             <button onclick="createCaptcha()"> CAPTCHA-size </button> <!-- calls the createCaptcha() function -->
             
-            <h1>Step 3: Download CAPTCHA Translated File<br></h1>
+            <h1>Step 4: Download CAPTCHA Translated File<br></h1>
             (Hint: File names must have correct file extensions ie .txt, .html, .cpp, etc)
             
             
             <form onsubmit="download(this['name'].value, fileText)"> <!-- calls the download function-->
-            <input type="text" name="name" value="test.txt">
-            <input type="submit" value="Download"> </form>
+                <input type="text" name="name">
+                <input type="submit" value="Download">
+            </form>
             
-                <div id='output'> <!-- to be changed to what is read from file-->
-                    ...
-        
-                </div>
+            <div id='output'> <!-- to be changed to what is read from file-->
+            </div>
         </body>
     </html>
