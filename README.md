@@ -3,6 +3,11 @@ Stores website's html in a file, the file is read word by word searching for sen
 The sensitive words are replaced, character by character, with CAPTCHA letters
 
 CURL can be installed through CygWin setup
-Compiled with g++ in CygWin
+
+This is the first version of the algorithm.
+
+captchaTool.cpp Compiled with g++ in CygWin
 
 compile command: g++ captchaTool.cpp -lcurl
+
+
