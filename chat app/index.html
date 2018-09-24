@@ -1,0 +1,298 @@
+<html>
+    <head>
+    <title>ajax chat (room 1)</title>
+    <style type="text/css">
+div, body             {padding: 0px; margin: 0px; background:#ffffff; font-family:"Sans-Serif";}
+input, textarea  { font-family: courier new; font-size: 12px; }
+#content         { width:1000px; text-align:left; margin-left:60px; }
+
+#chatwindow      { 
+    border:1px solid #aaaaaa; 
+    padding:4px; 
+    background:#ffffff; 
+    color:black;
+    -moz-appearance: textfield-multiline;
+    -webkit-appearance: textarea;
+    border: 1px solid gray;
+    font: Helvetica;
+    font: Helvetica;
+    font-size: 20px;
+    height: 400px;
+    overflow: auto;
+    padding: 2px;
+    resize: both;
+    width: 1000px;
+    margin-left:10%;
+    
+    
+}
+#chatnick        { border: none; border-bottom:1px solid #aaaaaa; padding:4px; background:#ffffff; margin-left:10%; position: relative;}
+#chatmsg         { border: none; border-bottom:1px solid #aaaaaa; padding:4px; background:#ffffff; position: relative;}
+
+#info            { text-align:left; padding-left:0px; font-family:sans-serif; }
+#info td         { font-size:12px; padding-right:10px; color:#DFDFDF;  }
+#info .small     { font-size:10px; padding-left:10px; padding-right:0px; }
+
+#info a          { text-decoration:none; color:white; }
+#info a:hover    { text-decoration:underline; color:#CF9700; }
+#addButton, #msgDefaultButton{
+    display:inline-block;
+    cursor:pointer;
+    border:1px solid gray;
+}
+</style>
+    
+    </head>
+
+    <body>
+        <div>
+            <img src="https://lukesample.000webhostapp.com/images/red_banner.png" height=100  style="width: 100%; margin-top: -20; position: relative;">
+            <img src="https://lukesample.000webhostapp.com/images/arkansas_state_u.png" height=10% style="position:relative; margin-left: 40%">
+        </div>
+        
+        <div>
+            
+        </div>
+        
+        <div style = "margin-top: .5%; margin-left: 9%">
+            Click the "Change Default" button to swap between Plain text and Captchas
+            <br>
+            <br>
+            Default currently set to: 
+            <div id = msgDefaultText style = "font-size:30px" > Plain Text </div>
+            
+            <br>
+            
+            
+            
+        </div>
+        <br>
+        <div id="content">
+            
+            <div  id="chatwindow" contenteditable></div><br>
+        
+            <input id="chatnick" type="text" size="9" maxlength="10" placeholder="username">&nbsp;
+            <input id="chatmsg" type="text" size="80" maxlength="80"  onkeyup="keyup(event.keyCode);" placeholder="message">
+            <button id = addButton onclick="submit_msg();"> add </button>
+            <button id = msgDefaultButton onclick="changeDefault()"> Change Default </button>
+            <br><br>
+        </div>
+        <br><br>
+    </body>
+    
+</html>
+
+<script type="text/javascript">
+
+//gets rid of the spellcheck underline blinking
+chatwindow.spellcheck = false;
+chatwindow.focus();
+chatwindow.blur();
+
+
+
+/* most simple ajax chat script (www.linuxuser.at) (GPLv2) */
+var nick_maxlength=10;
+var http_request=false;
+var http_request2=false;
+var intUpdate;
+
+/* http_request for writing */
+function ajax_request(url){
+    http_request=false;
+    if(window.XMLHttpRequest)
+    {
+        http_request=new XMLHttpRequest();
+        if(http_request.overrideMimeType)
+        {
+            http_request.overrideMimeType('text/xml');
+        }
+    }
+    else if(window.ActiveXObject)
+    {
+        try{
+            http_request=new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch(e){
+            try{
+                http_request=new ActiveXObject("Microsoft.XMLHTTP");
+            }catch(e){
+                
+            }
+        }
+    }
+    if(!http_request){
+        alert('Giving up :( Cannot create an XMLHTTP instance');
+        return false;
+    }
+    http_request.onreadystatechange=alertContents;
+    http_request.open('GET',url,true);
+    http_request.send(null);
+}
+function alertContents(){
+    if(http_request.readyState==4){
+        if(http_request.status==200){
+            rec_response(http_request.responseText);
+        }else{
+        }
+    }
+}
+
+/* http_request for reading */
+function ajax_request2(url){
+    http_request2=false;
+    if(window.XMLHttpRequest){
+        http_request2=new XMLHttpRequest();
+        if(http_request2.overrideMimeType){
+            http_request2.overrideMimeType('text/xml');
+        }
+    }
+    else if(window.ActiveXObject){
+        try{
+            http_request2=new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch(e){
+            try{
+                http_request2=new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            catch(e){
+            }
+        }
+    }
+    if(!http_request2){
+        alert('Giving up :( Cannot create an XMLHTTP instance');
+        return false;
+    }
+    http_request2.onreadystatechange=alertContents2;
+    http_request2.open('GET',url,true);
+    http_request2.send(null);
+    
+}
+function alertContents2(){
+    if(http_request2.readyState==4){
+        if(http_request2.status==200){
+            //console.log("inside alertContents2, responseText: " + http_request2.responseText);
+            rec_chatcontent(http_request2.responseText);
+        }
+        else{
+        }
+    }
+}
+
+/* chat stuff */
+chatmsg.focus()
+var show_newmsg_on_bottom=1;     /* set to 0 to let new msg´s appear on top */
+var waittime=1000;        /* time between chat refreshes (ms) */
+var sensitiveWords = ["flowers", "gift", "happy", "smile", "party"];
+intUpdate=window.setTimeout("read_cont();", waittime);
+chatwindow.innerHTML = "loading...";
+var msgDefault = 0; //0 = plain text, 1 = captchas
+
+function changeDefault()
+{
+    //console.log("inside changeDefault");
+    if (msgDefault == 0) //msgDefault is 0, plain text
+    {
+        msgDefault = 1; //change to captchas
+        msgDefaultText.innerHTML = "Captchas";
+        
+    }
+    else //msgDefault is 1, captchas
+    {
+        //console.log("inside else");
+        msgDefault = 0; //change to plain text
+        msgDefaultText.innerHTML = "Plain Text"
+    }
+}
+function read_cont()         { 
+    zeit = new Date();
+    ms = (zeit.getHours() * 24 * 60 * 1000) + (zeit.getMinutes() * 60 * 1000) + (zeit.getSeconds() * 1000) + zeit.getMilliseconds();
+    ajax_request2("chat.txt?x=" + ms);
+}
+
+function isVowel(letter) 
+            {
+                var vowels = ['A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u', 'Y', 'y']
+                var result = false;
+                var i;
+                for (i = 0; i < 12; i++)
+                {
+                    if (vowels[i] === letter)
+                    {
+                        result = true;
+                    }
+                }
+                
+                return result;
+            }
+
+String.prototype.replaceAll = function(str1, str2, ignore)
+{
+   return this.replace(new RegExp(str1.replace(/([\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, function(c){return "\\" + c;}), "g"+(ignore?"i":"")), str2);
+};
+
+function display_msg(msg1)     { 
+    
+    chatwindow.innerHTML =   msg1.trim(); 
+    //set the chat window to auto scroll to bottom
+    chatwindow.scrollTop = chatwindow.scrollHeight;
+        //chatwindow.innerHTML = msg1.trim(); 
+}
+function keyup(arg1)         { if (arg1 == 13) submit_msg(); }
+function submit_msg()         { 
+    clearTimeout(intUpdate);
+    if (chatnick.value == "")
+    { 
+        check = prompt("please enter username:");
+        if (check === null)
+            return 0;
+        if (check == "")
+            check="...";
+        chatnick.value=check;
+    }
+    if (chatnick.value.length > nick_maxlength)
+        chatnick.value=chatnick.value.substring(0,nick_maxlength);
+    spaces="";
+    
+    
+        
+    
+    for(i=0;i<(nick_maxlength-chatnick.value.length);i++)
+        spaces+=" ";
+    v=chatwindow.innerHTML.substring(chatwindow.innerHTML.indexOf("<br><br>")) + " <br><br> " + chatnick.value + ": " + chatmsg.value;
+    if (chatmsg.value != "")
+        chatwindow.value=v.substring(1);
+        
+    
+    //console.log("chatmsg.value before sending it: " + chatmsg.value);
+    write_msg(chatmsg.value,chatnick.value, msgDefault);
+    chatmsg.value="";
+    intUpdate=window.setTimeout("read_cont();", waittime);
+}
+function write_msg(msg1,nick1, msgDefault)     {
+    console.log("calling the php script with default = " + msgDefault);
+    ajax_request("w.php?m=" + escape(msg1) + "&n=" + escape(nick1) + "&d=" + escape(msgDefault));
+}
+function rec_response(str1)     { }
+
+function rec_chatcontent(cont1) {
+    //console.log("inside the rec_chatcontent function, cont1 is " + cont1);
+     if (cont1 != "") {
+          out1 = unescape(cont1);
+           if (show_newmsg_on_bottom == 0) { 
+               out1 = ""; 
+               while (cont1.indexOf("\n") > -1) { 
+                   out1 = cont1.substr(0, cont1.indexOf("\n")) + "\n" + out1; 
+                   cont1 = cont1.substr(cont1.indexOf("\n") + 1); 
+                   out1 = unescape(out1); 
+               } 
+           }
+          if (chatwindow.innerHTML != out1) { 
+              //console.log("inside the rec_chatcontent function, msg is " + out1);
+              display_msg(out1); 
+          }
+          intUpdate=window.setTimeout("read_cont()", waittime);
+      }
+    //display_msg(cont1); 
+}
+</script>

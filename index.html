@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
+
+        
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <!--- <script type="text/javascript">
+        //     $.ajax({
+        //     type: "GET",
+        //     url: "https://lukesample.000webhostapp.com/captchaGenerator.php"
+        //     }).done(function( data) {
+      
+        //     });
+        // </script> -->
+            <script>
+            
+            var fileText = "";
+            var sensitiveWords =[] ;//["flowers", "gift", "happy", "smile", "party"];
+            // (function update()
+            // {
+            //     $.ajax({
+            //      type: "GET",
+            //     url: "https://lukesample.000webhostapp.com/captchaGenerator.php"
+            //     }).then(function() {
+            //         setTimeout(update, 10000);
+            //     });
+            //     alert( "Request is done" );
+            // })();
+            var openFile = function(event)
+            {
+                var input = event.target; //target that triggered the event(the file)
+            
+                var reader = new FileReader();
+                reader.onload = function()
+                {
+                    fileText = fileText.concat(reader.result); //get the data from the file
+                    var node = document.getElementById('output'); //change the div output to the file's output
+                    node.innerHTML = "<pre>" + fileText + "</pre>";
+                    console.log(reader.result.substring(0, 200)); //print output to log
+                };
+                reader.readAsText(input.files[0]);
+            };
+            
+            function isVowel(letter) 
+            {
+                var vowels = ['A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u', 'Y', 'y']
+                var result = false;
+                var i;
+                for (i = 0; i < 12; i++)
+                {
+                    if (vowels[i] === letter)
+                    {
+                        result = true;
+                    }
+                }
+                
+                return result;
+            }
+            
+            function createCaptcha()
+            {
+                var i; //outer loop
+                var j; //inner loop
+                var wordToReplace; //the target word
+                var replaceString; //where we will store the captcha html code
+                var convertedPercent = 0;
+                //loop to check to see if each word in the sensitive word list is in the string(from file)
+                for(i = 0; i < sensitiveWords.length; i++)
+                {
+                    if (fileText.includes(sensitiveWords[i]) != -1) //returns -1 if not in string
+                    {
+                        replaceString = ""; //clear the contents of the string to prevent overwriting
+                        wordToReplace = sensitiveWords[i]; //target word
+                        var strLen = wordToReplace.length;
+                        
+                        //iterate over each character, creating captcha html code for each
+                        for (j = 0; j < strLen; j++) 
+                        {
+                            //converting first & last letters as well as vowels
+                            if (j === 0 || j === strLen -1 || isVowel(wordToReplace[j]))
+                            {
+                                console.log(j);
+                                replaceString = replaceString.concat("<img src = \"https://lukesample.000webhostapp.com/captcha/", wordToReplace[j], ".jpeg\">");
+                            }
+                            else
+                            {
+                                replaceString = replaceString.concat(wordToReplace[j]);
+                            } //end inner if/else
+                        }//end inner for
+                        
+                        fileText = fileText.replace(sensitiveWords[i], replaceString);
+                    }//end outer if
+                } //end outer for
+                    document.getElementById("output").innerHTML =  "<pre>" + fileText + "</pre>";       
+            };
+            
+            function download(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+    
+                element.click();
+
+                document.body.removeChild(element);
+            }
+            
+            function addWord()
+            {
+                var input = document.getElementById("word"); //get the input field
+                
+                sensitiveWords.push(input.value);
+                if (sensitiveWords.length === 1) //if there is something in the array already
+                {
+                    
+                    document.getElementById("wordList").innerHTML +=  input.value;
+                }
+                else //empty array, will be first element
+                {
+                    
+                    document.getElementById("wordList").innerHTML += ", " + input.value;
+                }
+                
+                input.value = ""; //clear the input box
+            }
+            
+            function clearList()
+            {
+                sensitiveWords.length = 0;
+                document.getElementById("wordList").innerHTML = "</br> Sensitive Word List: ";
+            }
+
+        </script>
+    </head>
+        <body>
+            <!-- Navigation -->
+            <nav class="w3-bar w3-black">
+                <a href="websiteIndex.html" class="w3-button w3-bar-item">Home</a>
+                <a href="index.html" class="w3-button w3-bar-item">Captcha Tool</a>
+                <a href="worldCup2018.html" class="w3-button w3-bar-item">World Cup 2018</a>
+                <a href="BKTrees.html" class="w3-button w3-bar-item">BK-Trees</a>
+                <a href="beyonce.html" class="w3-button w3-bar-item">Beyonce</a>
+                <a href="searchEngine.html" class="w3-button w3-bar-item">Google's Search Engine</a>
+                <a href="chat app/index.html" class="w3-button w3-bar-item">Chat Application</a>
+            </nav>
+
+            <h1> Step 1: Choose Sensitive Words</h1>
+            Type the word you wish to add and click the "Add Word" button <br>
+            To clear your current list, simply click the "Clear Current List" button
+            
+            <div id='wordFields'>
+                <input type='text' name="word" id="word">
+                <input type='submit' onclick='addWord()' value='Add Word' id='wordButton'> <!-- calls the addWordField() function -->
+                <br>
+            </div>
+            
+            <div id="wordList">
+                <br>
+                Sensitive Word List:  
+            </div>
+            
+            <div id="clearListButton">
+                <br>
+                <input type="button" onclick="clearList()" value="Clear Current List">
+            </div>
+            
+            
+            <h1>Step 2: Choose a File to upload</h1>
+            <input type='file' onchange='openFile(event)'><br> <!--file input -->
+            
+            <h1>Step 3: Create CAPTCHA Translated File by clicking the button<br></h1>
+            <button onclick="createCaptcha()"> CAPTCHA-size </button> <!-- calls the createCaptcha() function -->
+            
+            <h1>Step 4: Download CAPTCHA Translated File<br></h1>
+            (Hint: File names must have correct file extensions ie .txt, .html, .cpp, etc)
+            
+            
+            <form onsubmit="download(this['name'].value, fileText)"> <!-- calls the download function-->
+                <input type="text" name="name">
+                <input type="submit" value="Download">
+            </form>
+            
+            <div id='output'> <!-- to be changed to what is read from file-->
+            </div>
+        </body>
+    </html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <!--- <script type="text/javascript">
+        //     $.ajax({
+        //     type: "GET",
+        //     url: "https://lukesample.000webhostapp.com/captchaGenerator.php"
+        //     }).done(function( data) {
+      
+        //     });
+        // </script> -->
+            <script>
+            
+            var fileText = "";
+            var sensitiveWords =[] ;//["flowers", "gift", "happy", "smile", "party"];
+            // (function update()
+            // {
+            //     $.ajax({
+            //      type: "GET",
+            //     url: "https://lukesample.000webhostapp.com/captchaGenerator.php"
+            //     }).then(function() {
+            //         setTimeout(update, 10000);
+            //     });
+            //     alert( "Request is done" );
+            // })();
+            var openFile = function(event)
+            {
+                var input = event.target; //target that triggered the event(the file)
+            
+                var reader = new FileReader();
+                reader.onload = function()
+                {
+                    fileText = fileText.concat(reader.result); //get the data from the file
+                    var node = document.getElementById('output'); //change the div output to the file's output
+                    node.innerHTML = "<pre>" + fileText + "</pre>";
+                    //console.log(reader.result.substring(0, 200)); //print output to log
+                };
+                reader.readAsText(input.files[0]);
+            };
+            
+            function isVowel(letter) 
+            {
+                var vowels = ['A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u', 'Y', 'y']
+                var result = false;
+                var i;
+                for (i = 0; i < 12; i++)
+                {
+                    if (vowels[i] === letter)
+                    {
+                        result = true;
+                    }
+                }
+                
+                return result;
+            }
+            
+            function createCaptcha()
+            {
+                var i; //outer loop
+                var j; //inner loop
+                var k;
+                var l;
+                var wordToReplace; //the target word
+                var replaceString; //where we will store the captcha html code
+                
+                //this array is used as a "bool" array, 0 for false 1 for true
+                //if 0, letter isn't converted. if 1, letter is converted
+                var convertedArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+                //loop to check to see if each word in the sensitive word list is in the string(from file)
+                for(i = 0; i < sensitiveWords.length; i++)
+                {
+                    if (fileText.includes(sensitiveWords[i]) != -1) //returns -1 if not in string
+                    {
+                        replaceString = ""; //clear the contents of the string to prevent overwriting
+                        wordToReplace = sensitiveWords[i]; //target word
+                        var lettersConverted = 0;
+                        var convertedPercent = 0;
+                        
+                        //iterate over each character, checking to see if the letter has been converted
+                        //loop stops when >= 50% of the word is converted
+                        for (j = 0; convertedPercent < .5; j++) 
+                        {
+                            var randomIndex = Math.floor(Math.random() * wordToReplace.length) + 0; //randomly choose an index to change
+                            
+                            if (convertedArray[randomIndex] != 1) //if the letter hasn't been converted
+                            {
+                                convertedArray[randomIndex] = 1; //set the conversion value to true
+                                lettersConverted++; //increment the total letters converted
+                                convertedPercent = lettersConverted / wordToReplace.length; //calculate percentage of the word that is converted
+                            }
+                        }//end inner for
+                        
+                        for (k = 0; k < wordToReplace.length; k++)
+                        {
+                            if (convertedArray[k] === 1)//the letter is set to be converted
+                            {
+                                //concatenate the html string linking to the captcha letter
+                                replaceString = replaceString.concat("<img src = \"https://lukesample.000webhostapp.com/captcha/", wordToReplace[k], ".jpeg\">");
+                            }
+                            else//letter not set to be converted
+                            {
+                                replaceString = replaceString.concat(wordToReplace[k]); //simply concatenate the letter
+                            }
+                        }
+                        
+                        //clear the array, we dont replace the 0s since
+                        //the elements will still not be equal to 1 at the start
+                        for (l = 0; l < 20; l++)
+                        {
+                            convertedArray.pop();
+                        }
+                        
+                        //replace the word in the fileText with the new html code
+                        fileText = fileText.replace(sensitiveWords[i], replaceString);
+                    }//end outer if
+                } //end outer for
+                
+                //replace the innerHTML with the new converted fileText
+                document.getElementById("output").innerHTML =  "<pre>" + fileText + "</pre>";       
+            };
+            
+            function download(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+    
+                element.click();
+
+                document.body.removeChild(element);
+            }
+            
+            function addWord()
+            {
+                var input = document.getElementById("word"); //get the input field
+                
+                sensitiveWords.push(input.value);
+                if (sensitiveWords.length === 1) //if there is something in the array already
+                {
+                    
+                    document.getElementById("wordList").innerHTML +=  input.value;
+                }
+                else //empty array, will be first element
+                {
+                    
+                    document.getElementById("wordList").innerHTML += ", " + input.value;
+                }
+                
+                input.value = ""; //clear the input box
+            }
+            
+            function clearList()
+            {
+                sensitiveWords.length = 0;
+                document.getElementById("wordList").innerHTML = "</br> Sensitive Word List: ";
+            }
+
+        </script>
+    </head>
+        <body>
+            <!-- Navigation -->
+            <nav class="w3-bar w3-black">
+                <a href="websiteIndex.html" class="w3-button w3-bar-item">Home</a>
+                <a href="index.html" class="w3-button w3-bar-item">Captcha Tool</a>
+                <a href="worldCup2018.html" class="w3-button w3-bar-item">World Cup 2018</a>
+                <a href="BKTrees.html" class="w3-button w3-bar-item">BK-Trees</a>
+                <a href="beyonce.html" class="w3-button w3-bar-item">Beyonce</a>
+                <a href="searchEngine.html" class="w3-button w3-bar-item">Google's Search Engine</a>
+                <a href="chat app/index.html" class="w3-button w3-bar-item">Chat Application</a>
+            </nav>
+
+            <h1> Step 1: Choose Sensitive Words</h1>
+            Type the word you wish to add and click the "Add Word" button <br>
+            To clear your current list, simply click the "Clear Current List" button
+            
+            <div id='wordFields'>
+                <input type='text' name="word" id="word">
+                <input type='submit' onclick='addWord()' value='Add Word' id='wordButton'> <!-- calls the addWordField() function -->
+                <br>
+            </div>
+            
+            <div id="wordList">
+                <br>
+                Sensitive Word List:  
+            </div>
+            
+            <div id="clearListButton">
+                <br>
+                <input type="button" onclick="clearList()" value="Clear Current List">
+            </div>
+            
+            
+            <h1>Step 2: Choose a File to upload</h1>
+            <input type='file' onchange='openFile(event)'><br> <!--file input -->
+            
+            <h1>Step 3: Create CAPTCHA Translated File by clicking the button<br></h1>
+            <button onclick="createCaptcha()"> CAPTCHA-size </button> <!-- calls the createCaptcha() function -->
+            
+            <h1>Step 4: Download CAPTCHA Translated File<br></h1>
+            (Hint: File names must have correct file extensions ie .txt, .html, .cpp, etc)
+            
+            
+            <form onsubmit="download(this['name'].value, fileText)"> <!-- calls the download function-->
+                <input type="text" name="name">
+                <input type="submit" value="Download">
+            </form>
+            
+            <div id='output'> <!-- to be changed to what is read from file-->
+            </div>
+        </body>
+    </html>
