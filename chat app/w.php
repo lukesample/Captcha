@@ -90,8 +90,6 @@
         
         if ($d == 1)
         {
-            //$wordArray = []; //create empty array to place words into
-            
             //this array is used as a "bool" array, 0 for false 1 for true
             //if 0, letter isn't converted. if 1, letter is converted
             $convertedArray = [];
